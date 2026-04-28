@@ -18,10 +18,11 @@ public class MainWindow extends JFrame implements GameEngine.EngineListener {
     private JLabel lblHabitacion;
     private DefaultListModel<String> modelInventario;
     private JList<String> listInventario;
+    private MapPanel mapPanel;
 
     public MainWindow() {
         setTitle("Odisea en la Estacion Espacial");
-        setSize(800, 600);
+        setSize(950, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         
@@ -71,52 +72,107 @@ public class MainWindow extends JFrame implements GameEngine.EngineListener {
         scrollNarrativa.setBorder(BorderFactory.createLineBorder(new Color(0, 100, 0)));
         add(scrollNarrativa, BorderLayout.CENTER);
 
-        // Panel Este: Inventario
-        JPanel pnlEste = new JPanel(new BorderLayout());
+        // =====================================================================
+        // Panel Este: Mapa + Inventario (apilados verticalmente)
+        // =====================================================================
+        JPanel pnlEste = new JPanel();
+        pnlEste.setLayout(new BoxLayout(pnlEste, BoxLayout.Y_AXIS));
         pnlEste.setBackground(new Color(20, 20, 25));
-        JLabel lblInv = new JLabel("INVENTARIO");
+
+        // --- Mapa ---
+        mapPanel = new MapPanel();
+        mapPanel.setMaximumSize(new Dimension(280, 220));
+        mapPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlEste.add(mapPanel);
+        pnlEste.add(Box.createVerticalStrut(8));
+
+        // --- Inventario ---
+        JLabel lblInv = new JLabel("  INVENTARIO");
         lblInv.setForeground(Color.CYAN);
-        pnlEste.add(lblInv, BorderLayout.NORTH);
+        lblInv.setFont(new Font("Consolas", Font.BOLD, 12));
+        lblInv.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlEste.add(lblInv);
         
         modelInventario = new DefaultListModel<>();
         listInventario = new JList<>(modelInventario);
         listInventario.setBackground(new Color(30, 30, 40));
         listInventario.setForeground(Color.WHITE);
+        listInventario.setFont(new Font("Consolas", Font.PLAIN, 12));
         
         JScrollPane scrollInv = new JScrollPane(listInventario);
-        scrollInv.setPreferredSize(new Dimension(150, 0));
-        pnlEste.add(scrollInv, BorderLayout.CENTER);
+        scrollInv.setPreferredSize(new Dimension(260, 120));
+        scrollInv.setMaximumSize(new Dimension(280, 200));
+        scrollInv.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pnlEste.add(scrollInv);
         
         add(pnlEste, BorderLayout.EAST);
 
-        // Panel Sur: Controles y Entrada
+        // =====================================================================
+        // Panel Sur: Direcciones + Botones de accion + Campo de comando
+        // =====================================================================
         JPanel pnlSur = new JPanel(new BorderLayout(5, 5));
         pnlSur.setBackground(new Color(30, 30, 40));
+        pnlSur.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
         
-        // Botones de direccion
-        JPanel pnlDirecciones = new JPanel(new GridLayout(3, 3));
+        // --- Botones de direccion (izquierda) ---
+        JPanel pnlDirecciones = new JPanel(new GridLayout(3, 3, 2, 2));
         pnlDirecciones.setBackground(new Color(30, 30, 40));
-        JButton btnNorte = createButton("Norte", "norte");
-        JButton btnSur = createButton("Sur", "sur");
-        JButton btnEste = createButton("Este", "este");
-        JButton btnOeste = createButton("Oeste", "oeste");
+        pnlDirecciones.setPreferredSize(new Dimension(180, 100));
+        JButton btnNorte = createDirButton("\u2191 Norte", "norte");
+        JButton btnSur   = createDirButton("\u2193 Sur", "sur");
+        JButton btnEste  = createDirButton("Este \u2192", "este");
+        JButton btnOeste = createDirButton("\u2190 Oeste", "oeste");
         
         pnlDirecciones.add(new JLabel()); pnlDirecciones.add(btnNorte); pnlDirecciones.add(new JLabel());
         pnlDirecciones.add(btnOeste); pnlDirecciones.add(new JLabel()); pnlDirecciones.add(btnEste);
         pnlDirecciones.add(new JLabel()); pnlDirecciones.add(btnSur); pnlDirecciones.add(new JLabel());
         
         pnlSur.add(pnlDirecciones, BorderLayout.WEST);
-        
-        // Campo de comandos
-        JPanel pnlComando = new JPanel(new BorderLayout());
+
+        // --- Botones de acciones rapidas (centro) ---
+        JPanel pnlAcciones = new JPanel(new GridLayout(2, 4, 4, 4));
+        pnlAcciones.setBackground(new Color(30, 30, 40));
+        pnlAcciones.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(60, 60, 80)),
+                " Acciones ",
+                javax.swing.border.TitledBorder.LEFT,
+                javax.swing.border.TitledBorder.TOP,
+                new Font("Consolas", Font.BOLD, 11),
+                new Color(0, 180, 220)
+            ),
+            BorderFactory.createEmptyBorder(2, 4, 4, 4)
+        ));
+
+        pnlAcciones.add(createActionButton("\uD83D\uDC41 Mirar",     "mirar",     new Color(60, 100, 140)));
+        pnlAcciones.add(createActionButton("\u270B Tomar",            "tomar",     new Color(60, 120, 60)));
+        pnlAcciones.add(createActionButton("\u2699 Usar",             "usar",      new Color(140, 120, 40)));
+        pnlAcciones.add(createActionButton("\uD83C\uDF92 Inventario", "inv",       new Color(100, 60, 140)));
+        pnlAcciones.add(createActionButton("\uD83D\uDCBB Hackear",   "hackear",   new Color(140, 50, 50)));
+        pnlAcciones.add(createActionButton("\uD83D\uDCBE Guardar",   "guardar",   new Color(50, 100, 100)));
+        pnlAcciones.add(createActionButton("\uD83D\uDCC2 Cargar",    "cargar",    new Color(50, 100, 100)));
+        pnlAcciones.add(createActionButton("\u2753 Ayuda",            "ayuda",     new Color(80, 80, 100)));
+
+        pnlSur.add(pnlAcciones, BorderLayout.CENTER);
+
+        // --- Campo de comandos (abajo) ---
+        JPanel pnlComando = new JPanel(new BorderLayout(5, 0));
         pnlComando.setBackground(new Color(30, 30, 40));
-        pnlComando.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        pnlComando.setBorder(BorderFactory.createEmptyBorder(6, 0, 0, 0));
         
+        JLabel lblCmd = new JLabel(" > ");
+        lblCmd.setForeground(new Color(0, 255, 0));
+        lblCmd.setFont(new Font("Consolas", Font.BOLD, 14));
+
         txtComando = new JTextField();
         txtComando.setBackground(Color.BLACK);
         txtComando.setForeground(Color.GREEN);
         txtComando.setFont(new Font("Consolas", Font.PLAIN, 14));
         txtComando.setCaretColor(Color.GREEN);
+        txtComando.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(new Color(0, 100, 0)),
+            BorderFactory.createEmptyBorder(4, 6, 4, 6)
+        ));
         txtComando.addActionListener((ActionEvent e) -> {
             String input = txtComando.getText();
             txtComando.setText("");
@@ -126,22 +182,63 @@ public class MainWindow extends JFrame implements GameEngine.EngineListener {
             }
         });
         
-        pnlComando.add(new JLabel("Comando: "), BorderLayout.WEST);
+        pnlComando.add(lblCmd, BorderLayout.WEST);
         pnlComando.add(txtComando, BorderLayout.CENTER);
         
-        pnlSur.add(pnlComando, BorderLayout.CENTER);
+        pnlSur.add(pnlComando, BorderLayout.SOUTH);
         
         add(pnlSur, BorderLayout.SOUTH);
     }
 
-    private JButton createButton(String text, String dir) {
+    /**
+     * Crea un boton de direccion con estilo sci-fi.
+     */
+    private JButton createDirButton(String text, String dir) {
         JButton btn = new JButton(text);
         btn.setBackground(new Color(50, 50, 70));
         btn.setForeground(Color.WHITE);
+        btn.setFont(new Font("Consolas", Font.BOLD, 11));
         btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createRaisedBevelBorder());
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
         btn.addActionListener(e -> {
             onMessage("> ir " + dir);
             engine.procesarComando("ir " + dir);
+        });
+        return btn;
+    }
+
+    /**
+     * Crea un boton de accion rapida con color personalizado.
+     * Para comandos que necesitan argumento (tomar, usar), se abre un dialogo.
+     */
+    private JButton createActionButton(String text, String comando, Color bgColor) {
+        JButton btn = new JButton(text);
+        btn.setBackground(bgColor);
+        btn.setForeground(Color.WHITE);
+        btn.setFont(new Font("SansSerif", Font.BOLD, 11));
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createRaisedBevelBorder());
+        btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        btn.addActionListener(e -> {
+            // Comandos que necesitan un argumento adicional
+            if (comando.equals("tomar") || comando.equals("usar")) {
+                String arg = JOptionPane.showInputDialog(
+                    this,
+                    "Escribe el nombre del objeto para '" + comando + "':",
+                    comando.substring(0, 1).toUpperCase() + comando.substring(1),
+                    JOptionPane.QUESTION_MESSAGE
+                );
+                if (arg != null && !arg.trim().isEmpty()) {
+                    String full = comando + " " + arg.trim();
+                    onMessage("> " + full);
+                    engine.procesarComando(full);
+                }
+            } else {
+                onMessage("> " + comando);
+                engine.procesarComando(comando);
+            }
         });
         return btn;
     }
@@ -177,6 +274,8 @@ public class MainWindow extends JFrame implements GameEngine.EngineListener {
     @Override
     public void onRoomChange(Stanza room) {
         lblHabitacion.setText("Sector: " + room.getNombre());
+        // Actualizar el mapa visual con la nueva habitacion
+        mapPanel.actualizarHabitacion(room.getId());
     }
 
     @Override
@@ -185,6 +284,14 @@ public class MainWindow extends JFrame implements GameEngine.EngineListener {
         for (Item item : inventory.getElementos()) {
             modelInventario.addElement(item.getNombre());
         }
+    }
+
+    /**
+     * Devuelve el panel del mapa para poder acceder a las habitaciones visitadas
+     * desde el sistema de guardado/carga.
+     */
+    public MapPanel getMapPanel() {
+        return mapPanel;
     }
 
     public static void main(String[] args) {
