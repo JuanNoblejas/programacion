@@ -15,7 +15,7 @@ public class GameEngine implements OxygenTimer.OxygenListener {
     // =======================================================================
     // TEMPORAL: PARA TESTING — Cambiar a false para reactivar el temporizador
     // =======================================================================
-    private static final boolean TIMER_DESACTIVADO = true;
+    private static final boolean TIMER_DESACTIVADO = false;
     // =======================================================================
 
     private GameState state;
