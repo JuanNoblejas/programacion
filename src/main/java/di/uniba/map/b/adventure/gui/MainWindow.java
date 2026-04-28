@@ -19,6 +19,8 @@ public class MainWindow extends JFrame implements GameEngine.EngineListener {
     private DefaultListModel<String> modelInventario;
     private JList<String> listInventario;
     private MapPanel mapPanel;
+    private JButton btnPausa;
+    private JPanel pnlOverlayPausa;
 
     public MainWindow() {
         setTitle("Odisea en la Estacion Espacial");
@@ -38,7 +40,7 @@ public class MainWindow extends JFrame implements GameEngine.EngineListener {
     private void initUI() {
         setLayout(new BorderLayout(10, 10));
 
-        // Panel Norte: Oxigeno y Habitacion
+        // Panel Norte: Oxigeno, Habitacion y Boton de Pausa
         JPanel pnlNorte = new JPanel(new BorderLayout(5, 5));
         pnlNorte.setBackground(new Color(30, 30, 40));
         pnlNorte.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -52,14 +54,38 @@ public class MainWindow extends JFrame implements GameEngine.EngineListener {
         progressOxigeno.setStringPainted(true);
         progressOxigeno.setForeground(new Color(0, 200, 100));
         progressOxigeno.setBackground(Color.DARK_GRAY);
-        
+
+        // Boton de Pausa
+        btnPausa = new JButton("\u23F8 Pausa");
+        btnPausa.setBackground(new Color(80, 80, 100));
+        btnPausa.setForeground(Color.WHITE);
+        btnPausa.setFont(new Font("Consolas", Font.BOLD, 12));
+        btnPausa.setFocusPainted(false);
+        btnPausa.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        btnPausa.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(new Color(100, 100, 130)),
+                BorderFactory.createEmptyBorder(5, 12, 5, 12)
+        ));
+        btnPausa.addActionListener(e -> togglePausa());
+
+        JPanel pnlOxigeno = new JPanel(new BorderLayout(5, 0));
+        pnlOxigeno.setOpaque(false);
+        pnlOxigeno.add(new JLabel("Oxigeno: ") {{
+            setForeground(new Color(150, 200, 255));
+            setFont(new Font("Consolas", Font.PLAIN, 12));
+        }}, BorderLayout.WEST);
+        pnlOxigeno.add(progressOxigeno, BorderLayout.CENTER);
+        pnlOxigeno.add(btnPausa, BorderLayout.EAST);
+
         pnlNorte.add(lblHabitacion, BorderLayout.WEST);
-        pnlNorte.add(new JLabel("Oxigeno: "), BorderLayout.CENTER);
-        pnlNorte.add(progressOxigeno, BorderLayout.EAST);
+        pnlNorte.add(pnlOxigeno, BorderLayout.CENTER);
         
         add(pnlNorte, BorderLayout.NORTH);
 
-        // Panel Centro: Narrativa
+        // Panel Centro: Narrativa (con overlay de pausa)
+        JLayeredPane layeredCenter = new JLayeredPane();
+        layeredCenter.setLayout(new OverlayLayout(layeredCenter));
+
         txtNarrativa = new JTextArea();
         txtNarrativa.setEditable(false);
         txtNarrativa.setLineWrap(true);
@@ -70,7 +96,20 @@ public class MainWindow extends JFrame implements GameEngine.EngineListener {
         
         JScrollPane scrollNarrativa = new JScrollPane(txtNarrativa);
         scrollNarrativa.setBorder(BorderFactory.createLineBorder(new Color(0, 100, 0)));
-        add(scrollNarrativa, BorderLayout.CENTER);
+
+        // Overlay de pausa (oculto por defecto)
+        pnlOverlayPausa = new JPanel(new GridBagLayout());
+        pnlOverlayPausa.setBackground(new Color(0, 0, 0, 180));
+        pnlOverlayPausa.setVisible(false);
+        JLabel lblPausa = new JLabel("JUEGO EN PAUSA");
+        lblPausa.setFont(new Font("Consolas", Font.BOLD, 28));
+        lblPausa.setForeground(new Color(255, 200, 50));
+        pnlOverlayPausa.add(lblPausa);
+
+        layeredCenter.add(scrollNarrativa);
+        layeredCenter.add(pnlOverlayPausa);
+
+        add(layeredCenter, BorderLayout.CENTER);
 
         // =====================================================================
         // Panel Este: Mapa + Inventario (apilados verticalmente)
@@ -191,6 +230,29 @@ public class MainWindow extends JFrame implements GameEngine.EngineListener {
     }
 
     /**
+     * Alterna entre pausa y reanudacion del juego.
+     */
+    private void togglePausa() {
+        if (engine.isPausado()) {
+            // Reanudar
+            engine.reanudarTimer();
+            btnPausa.setText("\u23F8 Pausa");
+            btnPausa.setBackground(new Color(80, 80, 100));
+            txtComando.setEnabled(true);
+            pnlOverlayPausa.setVisible(false);
+            onMessage("[Sistema] Juego reanudado.");
+        } else {
+            // Pausar
+            engine.pausarTimer();
+            btnPausa.setText("\u25B6 Reanudar");
+            btnPausa.setBackground(new Color(50, 130, 50));
+            txtComando.setEnabled(false);
+            pnlOverlayPausa.setVisible(true);
+            onMessage("[Sistema] Juego en pausa.");
+        }
+    }
+
+    /**
      * Crea un boton de direccion con estilo sci-fi.
      */
     private JButton createDirButton(String text, String dir) {
@@ -211,6 +273,7 @@ public class MainWindow extends JFrame implements GameEngine.EngineListener {
     /**
      * Crea un boton de accion rapida con color personalizado.
      * Para comandos que necesitan argumento (tomar, usar), se abre un dialogo.
+     * El timer se pausa automaticamente durante los dialogos.
      */
     private JButton createActionButton(String text, String comando, Color bgColor) {
         JButton btn = new JButton(text);
@@ -224,12 +287,16 @@ public class MainWindow extends JFrame implements GameEngine.EngineListener {
         btn.addActionListener(e -> {
             // Comandos que necesitan un argumento adicional
             if (comando.equals("tomar") || comando.equals("usar")) {
+                // Pausar el timer mientras el dialogo esta abierto
+                engine.pausarTimer();
                 String arg = JOptionPane.showInputDialog(
                     this,
                     "Escribe el nombre del objeto para '" + comando + "':",
                     comando.substring(0, 1).toUpperCase() + comando.substring(1),
                     JOptionPane.QUESTION_MESSAGE
                 );
+                // Reanudar el timer al cerrar el dialogo
+                engine.reanudarTimer();
                 if (arg != null && !arg.trim().isEmpty()) {
                     String full = comando + " " + arg.trim();
                     onMessage("> " + full);
@@ -264,11 +331,11 @@ public class MainWindow extends JFrame implements GameEngine.EngineListener {
     @Override
     public void onGameOver(boolean win) {
         txtComando.setEnabled(false);
-        if (win) {
-            JOptionPane.showMessageDialog(this, "¡Felicidades! Has escapado de la estacion espacial.", "Mision Cumplida", JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            JOptionPane.showMessageDialog(this, "Te has quedado sin oxigeno. La estacion sera tu tumba...", "Game Over", JOptionPane.ERROR_MESSAGE);
-        }
+        // Cerrar la ventana principal y abrir la pantalla de Game Over
+        dispose();
+        SwingUtilities.invokeLater(() -> {
+            new GameOverWindow(win).setVisible(true);
+        });
     }
 
     @Override

@@ -12,6 +12,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GameEngine implements OxygenTimer.OxygenListener {
+    // =======================================================================
+    // TEMPORAL: PARA TESTING — Cambiar a false para reactivar el temporizador
+    // =======================================================================
+    private static final boolean TIMER_DESACTIVADO = true;
+    // =======================================================================
+
     private GameState state;
     private Parser parser;
     private OxygenTimer timer;
@@ -80,8 +86,39 @@ public class GameEngine implements OxygenTimer.OxygenListener {
 
     private void iniciarTimer(int oxigeno) {
         if (timer != null) timer.detener();
+        // TEMPORAL: Si TIMER_DESACTIVADO, no iniciamos el timer
+        if (TIMER_DESACTIVADO) {
+            listener.onOxygenUpdate(100);
+            return;
+        }
         timer = new OxygenTimer(oxigeno, this);
         timer.start();
+    }
+
+    /**
+     * Pausa el temporizador de oxigeno.
+     */
+    public void pausarTimer() {
+        if (timer != null && !TIMER_DESACTIVADO) {
+            timer.pausar();
+        }
+    }
+
+    /**
+     * Reanuda el temporizador de oxigeno.
+     */
+    public void reanudarTimer() {
+        if (timer != null && !TIMER_DESACTIVADO) {
+            timer.reanudar();
+        }
+    }
+
+    /**
+     * Devuelve true si el juego esta pausado.
+     */
+    public boolean isPausado() {
+        if (timer == null || TIMER_DESACTIVADO) return false;
+        return timer.isPausado();
     }
 
     public void procesarComando(String input) {
