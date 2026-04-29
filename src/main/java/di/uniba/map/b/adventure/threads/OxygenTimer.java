@@ -3,93 +3,93 @@ package di.uniba.map.b.adventure.threads;
 import javax.swing.SwingUtilities;
 
 public class OxygenTimer extends Thread {
-    private int oxigenoRestante;
-    private volatile boolean activo;
-    private volatile boolean pausado;
-    private final Object lockPausa = new Object();
+    private int oxygenRemaining;
+    private volatile boolean active;
+    private volatile boolean paused;
+    private final Object pauseLock = new Object();
     private OxygenListener listener;
 
     public interface OxygenListener {
-        void onOxygenUpdate(int oxigeno);
+        void onOxygenUpdate(int oxygen);
         void onGameOver();
     }
 
-    public OxygenTimer(int oxigenoInicial, OxygenListener listener) {
-        this.oxigenoRestante = oxigenoInicial;
-        this.activo = true;
-        this.pausado = false;
+    public OxygenTimer(int initialOxygen, OxygenListener listener) {
+        this.oxygenRemaining = initialOxygen;
+        this.active = true;
+        this.paused = false;
         this.listener = listener;
     }
 
     @Override
     public void run() {
-        while (activo && oxigenoRestante > 0) {
+        while (active && oxygenRemaining > 0) {
             try {
-                // Si esta pausado, esperamos hasta que se reanude
-                synchronized (lockPausa) {
-                    while (pausado && activo) {
-                        lockPausa.wait();
+                // If paused, wait until resumed
+                synchronized (pauseLock) {
+                    while (paused && active) {
+                        pauseLock.wait();
                     }
                 }
 
-                if (!activo) break;
+                if (!active) break;
 
                 Thread.sleep(1000);
-                oxigenoRestante--;
+                oxygenRemaining--;
                 
                 if (listener != null) {
-                    SwingUtilities.invokeLater(() -> listener.onOxygenUpdate(oxigenoRestante));
+                    SwingUtilities.invokeLater(() -> listener.onOxygenUpdate(oxygenRemaining));
                 }
                 
             } catch (InterruptedException e) {
-                System.out.println("Temporizador interrumpido.");
-                activo = false;
+                System.out.println("Timer interrupted.");
+                active = false;
             }
         }
         
-        if (oxigenoRestante <= 0 && activo && listener != null) {
+        if (oxygenRemaining <= 0 && active && listener != null) {
             SwingUtilities.invokeLater(() -> listener.onGameOver());
         }
     }
 
     /**
-     * Pausa el temporizador. El oxigeno deja de decrementarse.
+     * Pauses the timer. Oxygen stops decreasing.
      */
     public void pausar() {
-        pausado = true;
+        paused = true;
     }
 
     /**
-     * Reanuda el temporizador despues de una pausa.
+     * Resumes the timer after a pause.
      */
     public void reanudar() {
-        synchronized (lockPausa) {
-            pausado = false;
-            lockPausa.notifyAll();
+        synchronized (pauseLock) {
+            paused = false;
+            pauseLock.notifyAll();
         }
     }
 
     /**
-     * Devuelve true si el timer esta pausado.
+     * Returns true if the timer is paused.
      */
     public boolean isPausado() {
-        return pausado;
+        return paused;
     }
 
     public void detener() {
-        this.activo = false;
-        // Desbloquear si esta en pausa para que el hilo termine
-        synchronized (lockPausa) {
-            pausado = false;
-            lockPausa.notifyAll();
+        this.active = false;
+        // Unblock if paused so the thread can terminate
+        synchronized (pauseLock) {
+            paused = false;
+            pauseLock.notifyAll();
         }
     }
 
-    public void addOxigeno(int cantidad) {
-        this.oxigenoRestante += cantidad;
+    public void addOxigeno(int amount) {
+        this.oxygenRemaining += amount;
     }
 
     public int getOxigenoRestante() {
-        return oxigenoRestante;
+        return oxygenRemaining;
     }
 }

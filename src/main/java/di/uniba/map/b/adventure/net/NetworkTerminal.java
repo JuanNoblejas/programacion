@@ -17,11 +17,11 @@ public class NetworkTerminal {
         
         serverThread = new Thread(() -> {
             try (ServerSocket serverSocket = new ServerSocket(PORT)) {
-                System.out.println("Servidor de red iniciado en puerto " + PORT);
+                System.out.println("Network server started on port " + PORT);
                 while (!Thread.currentThread().isInterrupted()) {
                     try (Socket clientSocket = serverSocket.accept();
                          PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true)) {
-                        out.println("MENSAJE RECIBIDO DE LA RED: 'Ayuda! Estamos atrapados en el sector de ingenieria. El sistema de escape esta bloqueado.'");
+                        out.println("TRANSMISSION RECEIVED — This is rescue fleet Artemis. We received your signal on frequency OMEGA-7. The unlock sequence for the Escape Module is: OMEGA-2847-ESCAPE. Repeat: OMEGA-2847-ESCAPE. Good luck.");
                     }
                 }
             } catch (IOException e) {
@@ -37,7 +37,7 @@ public class NetworkTerminal {
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
             return in.readLine();
         } catch (IOException e) {
-            return "Error de red: No se pudo conectar al servidor de comunicaciones.";
+            return "Network error: Could not connect to the communications server.";
         }
     }
 }

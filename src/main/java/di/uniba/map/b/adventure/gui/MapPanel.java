@@ -5,39 +5,38 @@ import java.awt.*;
 import java.util.*;
 
 /**
- * Panel que dibuja un mapa visual de la estacion espacial.
- * Las habitaciones se van desbloqueando (haciendose visibles)
- * conforme el jugador las visita.
+ * Panel that draws a visual map of the space station.
+ * Rooms are revealed as the player visits them.
  */
 public class MapPanel extends JPanel {
 
-    // Posiciones fijas de cada habitacion en la cuadricula del mapa (col, fila)
-    private static final Map<String, int[]> POSICIONES = new LinkedHashMap<>();
+    // Fixed positions of each room on the map grid (col, row)
+    private static final Map<String, int[]> POSITIONS = new LinkedHashMap<>();
     static {
-        //                        col, fila
-        POSICIONES.put("crio",    new int[]{2, 0});  // Criogenia           (arriba centro)
-        POSICIONES.put("pasillo", new int[]{2, 1});  // Pasillo Central     (centro)
-        POSICIONES.put("ing",     new int[]{1, 1});  // Ingenieria          (centro izquierda)
-        POSICIONES.put("control", new int[]{3, 1});  // Sala de Control     (centro derecha)
-        POSICIONES.put("com",     new int[]{2, 2});  // Comunicaciones      (abajo centro)
-        POSICIONES.put("lab",     new int[]{4, 1});  // Laboratorio         (extremo derecha)
-        POSICIONES.put("escape",  new int[]{1, 2});  // Modulo de Escape    (abajo izquierda)
+        //                        col, row
+        POSITIONS.put("crio",    new int[]{2, 0});  // Cryogenics        (top center)
+        POSITIONS.put("pasillo", new int[]{2, 1});  // Central Hallway   (center)
+        POSITIONS.put("ing",     new int[]{1, 1});  // Engineering       (center left)
+        POSITIONS.put("control", new int[]{3, 1});  // Control Room      (center right)
+        POSITIONS.put("com",     new int[]{2, 2});  // Communications    (bottom center)
+        POSITIONS.put("lab",     new int[]{4, 1});  // Laboratory        (far right)
+        POSITIONS.put("escape",  new int[]{1, 2});  // Escape Module     (bottom left)
     }
 
-    // Nombres legibles para mostrar dentro de cada celda
-    private static final Map<String, String> NOMBRES = new LinkedHashMap<>();
+    // Readable names to display inside each cell
+    private static final Map<String, String> NAMES = new LinkedHashMap<>();
     static {
-        NOMBRES.put("crio",    "Criogenia");
-        NOMBRES.put("pasillo", "Pasillo");
-        NOMBRES.put("ing",     "Ingenieria");
-        NOMBRES.put("control", "Control");
-        NOMBRES.put("com",     "Comunic.");
-        NOMBRES.put("lab",     "Laborat.");
-        NOMBRES.put("escape",  "ESCAPE");
+        NAMES.put("crio",    "Cryogenics");
+        NAMES.put("pasillo", "Hallway");
+        NAMES.put("ing",     "Engineer.");
+        NAMES.put("control", "Control");
+        NAMES.put("com",     "Comms");
+        NAMES.put("lab",     "Lab");
+        NAMES.put("escape",  "ESCAPE");
     }
 
-    // Conexiones entre habitaciones (pares de ids) para dibujar lineas
-    private static final String[][] CONEXIONES = {
+    // Connections between rooms (id pairs) to draw lines
+    private static final String[][] CONNECTIONS = {
         {"crio", "pasillo"},
         {"pasillo", "ing"},
         {"pasillo", "control"},
@@ -46,22 +45,22 @@ public class MapPanel extends JPanel {
         {"ing", "escape"}
     };
 
-    private final Set<String> visitadas = new HashSet<>();
-    private String habitacionActualId = "";
+    private final Set<String> visited = new HashSet<>();
+    private String currentRoomId = "";
 
-    // Colores tematicos sci-fi
-    private static final Color COLOR_FONDO       = new Color(15, 15, 20);
-    private static final Color COLOR_NO_VISITADA  = new Color(40, 40, 55);
-    private static final Color COLOR_VISITADA     = new Color(30, 80, 120);
-    private static final Color COLOR_ACTUAL       = new Color(0, 200, 100);
+    // Sci-fi themed colors
+    private static final Color COLOR_BG          = new Color(15, 15, 20);
+    private static final Color COLOR_UNVISITED   = new Color(40, 40, 55);
+    private static final Color COLOR_VISITED      = new Color(30, 80, 120);
+    private static final Color COLOR_CURRENT      = new Color(0, 200, 100);
     private static final Color COLOR_ESCAPE       = new Color(200, 160, 0);
-    private static final Color COLOR_LINEA        = new Color(60, 60, 80);
-    private static final Color COLOR_LINEA_ACTIVA = new Color(0, 160, 220);
-    private static final Color COLOR_TEXTO        = Color.WHITE;
-    private static final Color COLOR_TEXTO_OCULTO = new Color(80, 80, 100);
+    private static final Color COLOR_LINE         = new Color(60, 60, 80);
+    private static final Color COLOR_LINE_ACTIVE  = new Color(0, 160, 220);
+    private static final Color COLOR_TEXT         = Color.WHITE;
+    private static final Color COLOR_TEXT_HIDDEN  = new Color(80, 80, 100);
 
     public MapPanel() {
-        setBackground(COLOR_FONDO);
+        setBackground(COLOR_BG);
         setPreferredSize(new Dimension(260, 200));
         setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createLineBorder(new Color(0, 100, 150), 1),
@@ -70,25 +69,25 @@ public class MapPanel extends JPanel {
     }
 
     /**
-     * Actualiza la habitacion actual y la marca como visitada.
+     * Updates the current room and marks it as visited.
      */
-    public void actualizarHabitacion(String idHabitacion) {
-        this.habitacionActualId = idHabitacion;
-        this.visitadas.add(idHabitacion);
+    public void actualizarHabitacion(String roomId) {
+        this.currentRoomId = roomId;
+        this.visited.add(roomId);
         repaint();
     }
 
     /**
-     * Restaura el conjunto de habitaciones visitadas (para cargar partida).
+     * Restores the set of visited rooms (for loading a saved game).
      */
     public void setVisitadas(Set<String> ids) {
-        visitadas.clear();
-        visitadas.addAll(ids);
+        visited.clear();
+        visited.addAll(ids);
         repaint();
     }
 
     public Set<String> getVisitadas() {
-        return new HashSet<>(visitadas);
+        return new HashSet<>(visited);
     }
 
     @Override
@@ -102,7 +101,7 @@ public class MapPanel extends JPanel {
         int gapX = 6;
         int gapY = 10;
 
-        // Calcular offset para centrar el mapa en el panel
+        // Calculate offset to center the map in the panel
         int totalCols = 5;
         int totalRows = 3;
         int totalW = totalCols * (cellW + gapX) - gapX;
@@ -110,22 +109,22 @@ public class MapPanel extends JPanel {
         int offsetX = (getWidth() - totalW) / 2;
         int offsetY = (getHeight() - totalH) / 2 + 8;
 
-        // Titulo del mapa
+        // Map title
         g2.setColor(new Color(0, 180, 220));
         g2.setFont(new Font("Consolas", Font.BOLD, 11));
         FontMetrics fmTitle = g2.getFontMetrics();
-        String titulo = "[ MAPA DE LA ESTACION ]";
-        g2.drawString(titulo, (getWidth() - fmTitle.stringWidth(titulo)) / 2, offsetY - 6);
+        String title = "[ STATION MAP ]";
+        g2.drawString(title, (getWidth() - fmTitle.stringWidth(title)) / 2, offsetY - 6);
 
-        // 1. Dibujar conexiones (lineas)
-        for (String[] con : CONEXIONES) {
-            int[] posA = POSICIONES.get(con[0]);
-            int[] posB = POSICIONES.get(con[1]);
+        // 1. Draw connections (lines)
+        for (String[] con : CONNECTIONS) {
+            int[] posA = POSITIONS.get(con[0]);
+            int[] posB = POSITIONS.get(con[1]);
             if (posA == null || posB == null) continue;
 
-            boolean ambasVisitadas = visitadas.contains(con[0]) && visitadas.contains(con[1]);
-            g2.setColor(ambasVisitadas ? COLOR_LINEA_ACTIVA : COLOR_LINEA);
-            g2.setStroke(ambasVisitadas ? new BasicStroke(2f) : new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{4}, 0));
+            boolean bothVisited = visited.contains(con[0]) && visited.contains(con[1]);
+            g2.setColor(bothVisited ? COLOR_LINE_ACTIVE : COLOR_LINE);
+            g2.setStroke(bothVisited ? new BasicStroke(2f) : new BasicStroke(1f, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{4}, 0));
 
             int x1 = offsetX + posA[0] * (cellW + gapX) + cellW / 2;
             int y1 = offsetY + posA[1] * (cellH + gapY) + cellH / 2;
@@ -136,52 +135,52 @@ public class MapPanel extends JPanel {
 
         g2.setStroke(new BasicStroke(1f));
 
-        // 2. Dibujar habitaciones
+        // 2. Draw rooms
         g2.setFont(new Font("Consolas", Font.PLAIN, 9));
         FontMetrics fm = g2.getFontMetrics();
 
-        for (Map.Entry<String, int[]> entry : POSICIONES.entrySet()) {
+        for (Map.Entry<String, int[]> entry : POSITIONS.entrySet()) {
             String id = entry.getKey();
             int[] pos = entry.getValue();
             int x = offsetX + pos[0] * (cellW + gapX);
             int y = offsetY + pos[1] * (cellH + gapY);
 
-            boolean esActual = id.equals(habitacionActualId);
-            boolean esVisitada = visitadas.contains(id);
-            boolean esEscape = id.equals("escape");
+            boolean isCurrent = id.equals(currentRoomId);
+            boolean isVisited = visited.contains(id);
+            boolean isEscape = id.equals("escape");
 
-            // Color de fondo de la celda
-            Color colorCelda;
-            if (esActual) {
-                colorCelda = COLOR_ACTUAL;
-            } else if (esEscape && esVisitada) {
-                colorCelda = COLOR_ESCAPE;
-            } else if (esVisitada) {
-                colorCelda = COLOR_VISITADA;
+            // Cell background color
+            Color cellColor;
+            if (isCurrent) {
+                cellColor = COLOR_CURRENT;
+            } else if (isEscape && isVisited) {
+                cellColor = COLOR_ESCAPE;
+            } else if (isVisited) {
+                cellColor = COLOR_VISITED;
             } else {
-                colorCelda = COLOR_NO_VISITADA;
+                cellColor = COLOR_UNVISITED;
             }
 
-            // Dibujar celda redondeada
-            g2.setColor(colorCelda);
+            // Draw rounded cell
+            g2.setColor(cellColor);
             g2.fillRoundRect(x, y, cellW, cellH, 8, 8);
 
-            // Borde
-            if (esActual) {
+            // Border
+            if (isCurrent) {
                 g2.setColor(Color.WHITE);
                 g2.setStroke(new BasicStroke(2f));
                 g2.drawRoundRect(x, y, cellW, cellH, 8, 8);
                 g2.setStroke(new BasicStroke(1f));
             } else {
-                g2.setColor(colorCelda.brighter());
+                g2.setColor(cellColor.brighter());
                 g2.drawRoundRect(x, y, cellW, cellH, 8, 8);
             }
 
-            // Nombre
-            String nombre = esVisitada ? NOMBRES.getOrDefault(id, "?") : "???";
-            g2.setColor(esVisitada ? COLOR_TEXTO : COLOR_TEXTO_OCULTO);
-            int txtW = fm.stringWidth(nombre);
-            g2.drawString(nombre, x + (cellW - txtW) / 2, y + cellH / 2 + fm.getAscent() / 2 - 1);
+            // Name
+            String name = isVisited ? NAMES.getOrDefault(id, "?") : "???";
+            g2.setColor(isVisited ? COLOR_TEXT : COLOR_TEXT_HIDDEN);
+            int txtW = fm.stringWidth(name);
+            g2.drawString(name, x + (cellW - txtW) / 2, y + cellH / 2 + fm.getAscent() / 2 - 1);
         }
     }
 }

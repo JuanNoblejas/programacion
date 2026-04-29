@@ -15,7 +15,7 @@ public class SaveLoadManager {
             out.writeObject(state);
             return true;
         } catch (IOException e) {
-            System.err.println("Error guardando la partida: " + e.getMessage());
+            System.err.println("Error saving the game: " + e.getMessage());
             return false;
         }
     }
@@ -24,7 +24,7 @@ public class SaveLoadManager {
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(SAVE_FILE))) {
             return (GameState) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            System.err.println("Error cargando la partida: " + e.getMessage());
+            System.err.println("Error loading the game: " + e.getMessage());
             return null;
         }
     }

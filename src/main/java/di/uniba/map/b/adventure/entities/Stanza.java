@@ -34,6 +34,7 @@ public class Stanza implements Serializable {
 
     public String getNombre() { return nombre; }
     public String getDescripcion() { return descripcion; }
+    public void setDescripcion(String descripcion) { this.descripcion = descripcion; }
     public Contenitore<Item> getObjetos() { return objetosEnHabitacion; }
     public String getId() { return id; }
 

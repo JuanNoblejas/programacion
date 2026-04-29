@@ -5,25 +5,25 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 
 /**
- * Ventana de Game Over / Mision Cumplida.
- * Se muestra cuando el juego termina (por falta de oxigeno o por victoria).
+ * Game Over / Mission Complete window.
+ * Shown when the game ends (out of oxygen or victory).
  */
 public class GameOverWindow extends JFrame {
 
     public GameOverWindow(boolean win) {
-        setTitle(win ? "Mision Cumplida" : "Game Over");
+        setTitle(win ? "Mission Complete" : "Game Over");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
 
-        // Fondo oscuro sci-fi
+        // Dark sci-fi background
         JPanel mainPanel = new JPanel() {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
-                // Degradado de fondo
+                // Background gradient
                 GradientPaint gp;
                 if (win) {
                     gp = new GradientPaint(0, 0, new Color(10, 30, 50),
@@ -39,61 +39,61 @@ public class GameOverWindow extends JFrame {
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(40, 40, 40, 40));
 
-        // Titulo grande
-        JLabel lblTitulo = new JLabel(win ? "MISION CUMPLIDA" : "GAME OVER");
-        lblTitulo.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblTitulo.setFont(new Font("Consolas", Font.BOLD, 48));
-        lblTitulo.setForeground(win ? new Color(0, 255, 150) : new Color(255, 50, 50));
+        // Large title
+        JLabel lblTitle = new JLabel(win ? "MISSION COMPLETE" : "GAME OVER");
+        lblTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblTitle.setFont(new Font("Consolas", Font.BOLD, 48));
+        lblTitle.setForeground(win ? new Color(0, 255, 150) : new Color(255, 50, 50));
 
-        // Mensaje narrativo
-        String mensajeTexto;
+        // Narrative message
+        String messageText;
         if (win) {
-            mensajeTexto = "<html><center>Has logrado reparar el modulo de escape<br>"
-                    + "y abandonar la estacion espacial.<br><br>"
-                    + "La Tierra te espera, astronauta.</center></html>";
+            messageText = "<html><center>You managed to repair the escape module<br>"
+                    + "and flee the space station.<br><br>"
+                    + "Earth awaits you, astronaut.</center></html>";
         } else {
-            mensajeTexto = "<html><center>El oxigeno se ha agotado...<br>"
-                    + "La estacion espacial sera tu tumba eterna.<br><br>"
-                    + "Nadie escuchara tu ultimo aliento en el vacio.</center></html>";
+            messageText = "<html><center>The oxygen has run out...<br>"
+                    + "The space station will be your eternal tomb.<br><br>"
+                    + "No one will hear your last breath in the void.</center></html>";
         }
-        JLabel lblMensaje = new JLabel(mensajeTexto);
-        lblMensaje.setAlignmentX(Component.CENTER_ALIGNMENT);
-        lblMensaje.setFont(new Font("Consolas", Font.PLAIN, 14));
-        lblMensaje.setForeground(new Color(180, 200, 220));
-        lblMensaje.setHorizontalAlignment(SwingConstants.CENTER);
+        JLabel lblMessage = new JLabel(messageText);
+        lblMessage.setAlignmentX(Component.CENTER_ALIGNMENT);
+        lblMessage.setFont(new Font("Consolas", Font.PLAIN, 14));
+        lblMessage.setForeground(new Color(180, 200, 220));
+        lblMessage.setHorizontalAlignment(SwingConstants.CENTER);
 
-        // Panel de botones
-        JPanel pnlBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
-        pnlBotones.setOpaque(false);
+        // Button panel
+        JPanel pnlButtons = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
+        pnlButtons.setOpaque(false);
 
-        JButton btnNuevoJuego = createStyledButton("Nuevo Juego", new Color(0, 120, 80));
-        btnNuevoJuego.addActionListener((ActionEvent e) -> {
+        JButton btnNewGame = createStyledButton("New Game", new Color(0, 120, 80));
+        btnNewGame.addActionListener((ActionEvent e) -> {
             dispose();
             SwingUtilities.invokeLater(() -> new MainWindow().setVisible(true));
         });
 
-        JButton btnSalir = createStyledButton("Salir", new Color(120, 30, 30));
-        btnSalir.addActionListener((ActionEvent e) -> {
+        JButton btnQuit = createStyledButton("Quit", new Color(120, 30, 30));
+        btnQuit.addActionListener((ActionEvent e) -> {
             System.exit(0);
         });
 
-        pnlBotones.add(btnNuevoJuego);
-        pnlBotones.add(btnSalir);
+        pnlButtons.add(btnNewGame);
+        pnlButtons.add(btnQuit);
 
-        // Montar layout
+        // Assemble layout
         mainPanel.add(Box.createVerticalGlue());
-        mainPanel.add(lblTitulo);
+        mainPanel.add(lblTitle);
         mainPanel.add(Box.createVerticalStrut(30));
-        mainPanel.add(lblMensaje);
+        mainPanel.add(lblMessage);
         mainPanel.add(Box.createVerticalStrut(40));
-        mainPanel.add(pnlBotones);
+        mainPanel.add(pnlButtons);
         mainPanel.add(Box.createVerticalGlue());
 
         setContentPane(mainPanel);
     }
 
     /**
-     * Crea un boton estilizado para la pantalla de Game Over.
+     * Creates a styled button for the Game Over screen.
      */
     private JButton createStyledButton(String text, Color bgColor) {
         JButton btn = new JButton(text);

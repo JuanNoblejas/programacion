@@ -9,6 +9,6 @@ public class Item extends ObjetoJuego {
 
     @Override
     public void usar() {
-        System.out.println("Has usado: " + getNombre());
+        System.out.println("You used: " + getNombre());
     }
 }

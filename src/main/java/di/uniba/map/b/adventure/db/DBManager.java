@@ -21,14 +21,17 @@ public class DBManager {
             stmt.execute("CREATE TABLE IF NOT EXISTS logs_terminal (id INT AUTO_INCREMENT PRIMARY KEY, log_text VARCHAR(500))");
             stmt.execute("CREATE TABLE IF NOT EXISTS puntuacion (id INT AUTO_INCREMENT PRIMARY KEY, nombre VARCHAR(50), score INT)");
             
-            // Insertar datos de prueba si esta vacio
             ResultSet rs = stmt.executeQuery("SELECT COUNT(*) FROM logs_terminal");
             if (rs.next() && rs.getInt(1) == 0) {
-                stmt.execute("INSERT INTO logs_terminal (log_text) VALUES ('Bitacora del Capitan: Sistema de navegacion fallando...')");
-                stmt.execute("INSERT INTO logs_terminal (log_text) VALUES ('Soporte vital critico en sector 4')");
+                stmt.execute("INSERT INTO logs_terminal (log_text) VALUES ('Captain''s Log - Day 12: All systems nominal. Routine maintenance completed.')");
+                stmt.execute("INSERT INTO logs_terminal (log_text) VALUES ('Captain''s Log - Day 25: We detected an anomaly in the engineering sector. Will investigate tomorrow.')");
+                stmt.execute("INSERT INTO logs_terminal (log_text) VALUES ('ALERT: Life support critical in sector 4. Immediate evacuation required.')");
+                stmt.execute("INSERT INTO logs_terminal (log_text) VALUES ('Chief Engineer: The electrical panel in engineering is damaged. Without it, there is no power for the systems.')");
+                stmt.execute("INSERT INTO logs_terminal (log_text) VALUES ('Captain''s Log - Day 47: The escape module locked down. I set the security code: 2847')");
+                stmt.execute("INSERT INTO logs_terminal (log_text) VALUES ('Comms Officer: The main antenna is broken. Unable to contact the rescue fleet.')");
             }
         } catch (SQLException e) {
-            System.err.println("Error inicializando la base de datos: " + e.getMessage());
+            System.err.println("Error initializing the database: " + e.getMessage());
         }
     }
 
@@ -39,9 +42,26 @@ public class DBManager {
                 return rs.getString("log_text");
             }
         } catch (SQLException e) {
-            return "Error accediendo a los logs de la base de datos.";
+            return "Error accessing the database logs.";
         }
-        return "No hay logs disponibles.";
+        return "No logs available.";
+    }
+
+    /**
+     * Returns all logs from the database, simulating a Mainframe data dump.
+     * Used when the player hacks the Control Room with the Access Card.
+     */
+    public static String getAllLogs() {
+        StringBuilder sb = new StringBuilder();
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+            ResultSet rs = stmt.executeQuery("SELECT log_text FROM logs_terminal ORDER BY id");
+            while (rs.next()) {
+                sb.append("  > ").append(rs.getString("log_text")).append("\n");
+            }
+        } catch (SQLException e) {
+            return "Error accessing the database logs.";
+        }
+        return sb.length() > 0 ? sb.toString() : "No logs available.";
     }
 
     public static void guardarPuntuacion(String nombre, int score) {
@@ -51,7 +71,7 @@ public class DBManager {
             pstmt.setInt(2, score);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            System.err.println("Error guardando puntuacion: " + e.getMessage());
+            System.err.println("Error saving score: " + e.getMessage());
         }
     }
 }
