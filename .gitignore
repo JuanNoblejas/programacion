@@ -1,0 +1,19 @@
+# Build output
+target/
+
+# IDE files
+.idea/
+*.iml
+nbproject/private/
+nbproject/
+build/
+dist/
+nbbuild/
+nbdist/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Save files
+savegame.dat
