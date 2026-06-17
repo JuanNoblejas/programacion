@@ -1,0 +1,186 @@
+"Odisea en la Estación Espacial", una aventura gráfica
+ ambientada en una base abandonada. El objetivo del jugador es reparar la nave, descubrir qué le pasó a la tripulación mediante terminales y escapar antes de que se acabe el soporte vital
+.
+Esta temática permite justificar de forma completamente natural cada una de las herramientas del curso
+. Aquí te detallo cómo implementar cada requerimiento técnico dentro del juego:
+1. Programación Orientada a Objetos (POO)
+Debes crear una jerarquía de clases sólida para los elementos del juego.
+Implementación: Crea una clase abstracta ObjetoJuego de la que hereden otras clases concretas como Arma, Llave o Documento
+. También puedes crear una interfaz Usable que defina el funcionamiento (un "contrato") mediante métodos como usar()
+. Los lugares de la estación se modelarán como una cuadrícula (matriz) de objetos de tipo Stanza (Habitación) interconectados
+.
+2. Interfaces Gráficas con SWING
+El proyecto dejará de ser una simple consola para convertirse en una verdadera aventura gráfica
+.
+Implementación: Usa SWING para construir la ventana principal. Tendrás paneles con botones direccionales (Norte, Sur, Este, Oeste) para navegar por la base espacial, un área de texto (TextArea) para mostrar las descripciones narrativas de las habitaciones y los diálogos
+, y una lista visual para mostrar el Inventario
+.
+3. Hilos (Threads) y Programación Concurrente
+La concurrencia es ideal para añadir urgencia y dinamismo al juego
+.
+Implementación: Crea un hilo que actúe como un temporizador de soporte vital (oxígeno). Este hilo se ejecutará en segundo plano reduciendo el tiempo disponible mientras el jugador explora. También podrías usar otro hilo para controlar el movimiento aleatorio de un "Dron de Seguridad" enemigo que patrulla las habitaciones de forma independiente a las acciones del jugador
+.
+4. Bases de Datos con JDBC
+En una estación espacial moderna es lógico que haya ordenadores o "Mainframes" que el jugador deba hackear o consultar.
+Implementación: Cuando el jugador encuentre una consola en el juego, accederá a una Base de Datos real mediante JDBC. Esta base puede almacenar los "registros de la tripulación" (logs) que contienen pistas o contraseñas para abrir puertas. Adicionalmente, puedes usar la base de datos para crear un Leaderboard (tabla de clasificaciones) que guarde la puntuación (score) y el nombre de cada jugador al terminar la partida
+.
+5. Sockets y/o APIs REST
+Las aventuras evolucionaron históricamente hacia entornos multiusuario (MUD)
+. Podemos implementar conectividad de red de manera creativa.
+Implementación vía Sockets: Crea un "Terminal de Comunicaciones Intergaláctico" en una habitación específica. Usando Sockets, el jugador puede conectarse a un servidor para dejar un mensaje de auxilio o leer los mensajes que otros jugadores reales hayan dejado en partidas anteriores.
+Implementación vía REST: Haz que un panel de la nave necesite resolver un acertijo basado en datos del mundo real. Mediante una API REST, el juego podría conectarse a internet para descargar la hora real, el clima actual de una ciudad o una "broma" de Chuck Norris, y el jugador deba usar esa información para avanzar.
+6. Archivos (File)
+La persistencia de datos local es clave en cualquier juego largo.
+Implementación: Utiliza el manejo de Archivos para implementar un sistema de Guardar/Cargar partida (Save/Load). Al guardar, el programa escribirá en un archivo .txt o binario la habitación actual en la matriz del mapa y los IDs de los objetos en el inventario
+. Al iniciar el juego, el archivo se lee para reconstruir ese estado. También puedes usar archivos para cargar la "Mappa" inicial del juego desde un documento externo
+.
+7. Programación Genérica (Generics)
+Las colecciones en Java utilizan genéricos para especificar el tipo de datos que contienen
+.
+Implementación: En lugar de usar colecciones estándar vacías, debes definir tu propia clase genérica. Por ejemplo, crea una clase Contenedor<T>
+ que sirva tanto para el inventario del jugador como para armarios y cofres ocultos en la estación
+. Al instanciarla, podrás tener un Contenedor<Arma> o un Contenedor<Pista>.
+8. Expresiones Lambda, Streams y Pipelines
+Estas herramientas son excelentes para manipular colecciones de forma elegante
+.
+Implementación: Cuando el jugador abra su inventario (que es una Colección
+), puedes usar streams y pipelines para filtrar el contenido. Por ejemplo, si el jugador usa el comando "Mostrar llaves", puedes hacer: inventario.stream().filter(obj -> obj instanceof Llave).forEach(...) para imprimir en la pantalla de SWING solo los objetos que sirvan para abrir puertas.
+9. La Especificación Algebraica (Para el documento de Word)
+Recuerda que la rúbrica exige incluir en el documento escrito una especificación algebraica (no axiomática) de una de tus estructuras de datos
+.
+Implementación: Elige la estructura del "Inventario" (que en la práctica podría comportarse como una Pila o una Coda
+). En tu documento, definirás la sección de Sintaxis (Sorts y Operations) indicando operaciones como new() -> Inventario, add(Inventario, Item) -> Inventario, etc. Luego, en la sección de Semántica, escribirás las ecuaciones que dictan su comportamiento utilizando Constructores y Observaciones
+.
+Con este diseño estructural, cada característica obligatoria encaja como pieza de rompecabezas en la trama, demostrando a los profesores que no solo pegaste código al azar, sino que diseñaste una arquitectura orientada al problema
+.
+-----------------------------------------------------------------------------------------------
+1. Análisis de Requisitos: ¿Qué valoran más los profesores?
+El proyecto consiste en crear una aventura testual o gráfica
+. Se evalúa sobre un máximo de 50 puntos (que luego se adaptan a la escala de 30) mediante 10 criterios fundamentales, cada uno valorado de 0 a 5 puntos
+:
+Criterios técnicos clave (Lo que DEBE tener el código): Calidad de la programación orientada a objetos (POO), uso de archivos (File), bases de datos (JDBC), hilos (Threads/concurrencia), Sockets y/o API REST, interfaces gráficas (SWING) y uso de expresiones Lambda, streams y pipelines
+.
+Diseño y Documentación: Calidad de la aventura en sí y calidad de la documentación del proyecto y del código
+.
+Complejidad: Hay un puntaje extra (bonus) que evalúa la complejidad del proyecto en proporción al número de miembros del grupo
+.
+Formato y Entrega: Debes entregar todo el material (código y documentación) por correo electrónico (zip o enlace) indicando todos los miembros del grupo, con al menos 5 días de anticipación a la prueba oral
+.
+Evaluación Oral: El día del examen tendrán un máximo de 20 minutos para hacer una demostración en vivo de la aventura (pueden usar diapositivas). Posteriormente, cada miembro será interrogado individualmente sobre todos los temas teóricos del curso
+.
+2. 3 Ideas de Temas Potenciales
+Sabiendo que el proyecto requiere crear un juego interactivo (Interactive Fiction) combinando POO, concurrencia, bases de datos y red, aquí tienes tres enfoques viables y "ganadores":
+Idea 1: "Escape Room del Laboratorio Hacker" (Enfoque en Sockets/REST y Concurrencia).
+Concepto: El jugador está atrapado en un laboratorio de informática y debe hackear terminales para escapar.
+Por qué es ganadora: Un laboratorio moderno permite usar Sockets/REST de forma natural (ej. el jugador debe "conectarse" a un servidor virtual dentro del juego para abrir una puerta)
+. Los hilos (threads) pueden usarse para temporizadores (ej. "tienes 5 minutos antes de que te descubran")
+. La matriz/mapa del juego representaría los distintos cuartos del laboratorio
+.
+Idea 2: "Misterio en la Estación Espacial" (Enfoque Planeta Alienígena / Base).
+Concepto: Una aventura de ciencia ficción en un planeta alienígena o nave
+. El jugador debe reparar la nave recogiendo piezas y combinándolas en su inventario
+.
+Por qué es ganadora: Este entorno te permite implementar muy bien el patrón de "objetos que cambian de estado" (ej. motores rotos vs. reparados)
+. Puedes usar bases de datos (JDBC) para guardar el progreso del jugador o almacenar los diálogos y descripciones complejas de cada habitación de la nave
+.
+Idea 3: "El Laberinto del Castillo Mágico" (Enfoque en POO Clásica y Estructuras de Datos).
+Concepto: Una aventura de fantasía con exploración de un castillo, magos y dragones
+. El jugador se mueve usando direcciones cardinales (Norte, Sur, Este, Oeste)
+.
+Por qué es ganadora: Es el estilo más clásico
+. Te facilitará mucho hacer el "Diagrama de clases" y aplicar herencia/polimorfismo (ej. una clase abstracta Personaje con subclases Enemigo y Aliado, o la interfaz ObjetoUsable)
+. Además, es ideal para la especificación algebraica requerida: puedes usar y justificar una estructura como un "Árbol Binario" o un "Grafo" para representar las conexiones del laberinto
+.
+3. Herramientas Recomendadas (Basadas en la asignatura)
+Aunque en tu solicitud mencionas IA o software estadístico, es fundamental aclarar que la guía docente no exige ni menciona su uso. Para que el trabajo sea evaluado positivamente, debes usar estrictamente el stack tecnológico de la clase
+:
+Entorno de Desarrollo (IDE) y Java: Apache NetBeans y Java JDK 21 o 25
+.
+Gestión del Proyecto: Maven para estructurar el proyecto e importar librerías
+.
+Control de Versiones: Git y un repositorio colaborativo en Github (esencial para el trabajo en grupo)
+.
+Bases de Datos: Una base de datos relacional para conectar mediante JDBC (ej. para guardar mapas, inventarios o puntuaciones)
+.
+Interfaz y Red: SWING para el entorno visual del juego (avventura grafica) y Sockets / REST APIs para los aspectos de red
+.
+4. Hoja de Ruta "Día 1" (3 Pasos para hoy)
+Para dejar de procrastinar, el grupo debe cumplir estas tres tareas hoy mismo:
+Configurar el repositorio y el entorno base: Creen el proyecto en Apache NetBeans seleccionando "Java with Maven -> Java Application"
+, suban la base a GitHub usando Git
+, y verifiquen que todos usan JDK 21 o 25
+.
+Definir la Trama y la Mappa (Matriz): Decidan el tema y dibujen en un papel la "Mappa" (mapa). Conviertan ese mapa en una matriz o cuadrícula (Grid) definiendo qué habrá en cada "Stanza" (ambiente), las direcciones (Norte, Sur, etc.) y qué objetos clave estarán ocultos
+.
+Bocetar las Estructuras de Clases Base: Definan en una pizarra o papel el diagrama de clases principal: ¿Cómo se relacionan la clase Habitacion, la clase abstracta Objeto, y la clase Inventario? Piensen desde ya cómo aplicarán principios de abstracción de datos e interfaces
+.
+5. Estructura Sugerida del Documento (Índice Oficial)
+Tu documento de Word a entregar debe calcar exactamente el formato solicitado en la plantilla
+:
+Portada: Nombre del juego, nombre del grupo, y datos de los miembros
+.
+Descrizione dell’avventura: Breve resumen de la trama de la aventura gráfica o textual
+.
+Progettazione: Explicación de cómo dividieron las responsabilidades de cada clase y la organización en paquetes (packages)
+.
+Diagramma delle classi: Inserción del diagrama visual y comentario sobre los principios POO aplicados (interfaces, herencia, clases abstractas, polimorfismo)
+.
+Specifica algebrica: MUY IMPORTANTE. Debes incluir una especificación algebraica (no axiomática) de una de tus estructuras de datos
+. Debe constar de sintaxis (Sorts y Operations) y semántica (Declare y Ecuaciones) usando Constructores y Observadores
+.
+Dettagli implementativi: Subsecciones obligatorias para explicar cómo integraron cada concepto de la clase
+:
+Programmazione generica (Generics)
+File (Archivos)
+Database (JDBC)
+Lambda Expression (incluyendo streams y pipelines)
+SWING
+Thread e programmazione concorrente
+Socket e/o REST
+
+----------------------------------------------
+Para estructurar el código de tu aventura (como el "Escape Room Espacial" que comentamos), debes basarte en los principios de diseño exigidos por la asignatura. Aquí tienes toda la estructura necesaria que deben implementar en su código:
+1. Estructura de Paquetes y Entorno
+Gestor y Entorno: Deben crear un proyecto "Java with Maven" usando el IDE Apache NetBeans
+.
+Packages (Paquetes): El código no puede estar suelto. Deben agrupar las clases en carpetas lógicas (packages) para definir los "namespaces" (por ejemplo: di.uniba.map.b.adventure.rooms, ...adventure.parser, etc.)
+. La justificación de esta división es obligatoria en el documento final
+.
+2. El Punto de Entrada del Juego
+Clase Main: Toda aplicación en Java debe tener al menos una clase principal que contenga el método public static void main(String[] args). Este será el punto de inicio desde donde invocarán las demás clases y la interfaz gráfica de su juego
+.
+3. Arquitectura Orientada a Objetos (El "Core") El juego debe ser un sistema de objetos que interactúan, donde cada uno tiene un "estado" (variables/atributos) y un "funcionamiento" (métodos)
+.
+Clases Abstractas e Interfaz (Ereditarietà): Para evitar repetir código y evaluar bien en POO, definan interfaces (contratos de métodos, como una interfaz Usable) y clases abstractas base (por ejemplo, ObjetoJuego o Habitacion) de las cuales heredarán objetos específicos
+. Las clases abstractas les permitirán tener métodos ya implementados y atributos comunes compartidos
+.
+Tipos Enumerativos (enum): Son ideales para definir conjuntos fijos de constantes. Por ejemplo, deben usar un enum para las direcciones de movimiento (NORTE, SUR, ESTE, OESTE) o para los estados del juego
+.
+Sobrescritura (Override) de equals() y hashCode(): Para poder comparar objetos dentro del juego (por ejemplo, saber si la "llave_roja" que pide la puerta es la misma "llave_roja" del inventario), deben sobrescribir el método equals() heredado de Object en sus clases
+.
+4. El Motor de la Aventura Textual/Gráfica Según el laboratorio de la asignatura, su juego debe estructurarse mediante estos componentes lógicos:
+La Mappa (El Mapa): Debe representarse computacionalmente como una cuadrícula o matriz (grid)
+. Cada celda representará un ambiente o "Stanza" y tendrá direcciones para moverse a celdas adyacentes
+.
+El Parser (Analizador Sintáctico): Necesitan una clase que interprete lo que el usuario escribe. El parser dividirá los comandos en pares de verbo-objeto (ej. "abrir puerta")
+. Para programarlo, usarán intensivamente la clase String, sus métodos como split() y replaceAll(), y Expresiones Regulares mediante las clases Pattern y Matcher para reconocer patrones en las frases del usuario
+.
+El Inventario: Un contenedor para los objetos que recoge el jugador
+.
+5. Colecciones y Programación Genérica Para gestionar los elementos dinámicos (como el inventario o la lista de habitaciones), es obligatorio usar el Framework Collection tipado con Generics (<T>) para evitar casteos inseguros
+.
+List (ej. ArrayList): Ideal para mantener secuencias ordenadas, como el historial de comandos ingresados o los pasos dados
+.
+Set (ej. HashSet): Útil para el Inventario, garantizando que el jugador no pueda tener dos objetos exactamente idénticos duplicados
+.
+Map (ej. HashMap): Fundamental para conectar la trama. Por ejemplo, para asociar un nombre de dirección ("norte") con el objeto de la habitación destino, o un nombre de comando ("coger") con el método a ejecutar
+.
+6. Integración de Tecnologías Obligatorias La estructura final también debe dejar espacio en su arquitectura para instanciar las herramientas técnicas evaluadas en el proyecto
+:
+SWING: Clases separadas para construir la interfaz visual (ventanas, botones, áreas de texto).
+Archivos (File): Una clase gestora de guardado/carga (Save/Load) del estado de las Collections.
+JDBC (Bases de Datos): Una clase que actúe como DAO (Data Access Object) para guardar puntuaciones o cargar diálogos desde una BD relacional.
+Hilos (Threads): Clases que implementen concurrencia (ej. el hilo del temporizador de oxígeno en la estación espacial).
+Sockets / REST: Una clase cliente/servidor para la comunicación en red.
+Expresiones Lambda: Se integrarán dentro de la manipulación de las Collections mencionadas en el punto 5 usando streams y pipelines.
+

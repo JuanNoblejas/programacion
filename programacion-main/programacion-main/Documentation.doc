@@ -1,0 +1,504 @@
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Space Station Odyssey - Project Documentation</title>
+<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View><w:Zoom>100</w:Zoom><w:DoNotOptimizeForBrowser/></w:WordDocument></xml><![endif]-->
+<style>
+@page { size: A4; margin: 2.5cm 2.5cm 2.5cm 2.5cm; }
+@page cover { mso-page-orientation: portrait; }
+</style>
+<style>
+body { font-family: 'Calibri', sans-serif; font-size: 11pt; margin: 60px; line-height: 1.5; }
+h1 { font-size: 22pt; color: #1a3c5e; border-bottom: 2px solid #1a3c5e; padding-bottom: 6px; margin-top: 30px; }
+h2 { font-size: 16pt; color: #2a5c8e; margin-top: 24px; }
+h3 { font-size: 13pt; color: #3a7cae; margin-top: 18px; }
+.cover { text-align: center; margin-top: 40px; page-break-after: always; }
+.cover h1 { font-size: 32pt; border: none; color: #0a2a4a; }
+.cover h2 { font-size: 18pt; color: #555; }
+.cover p { font-size: 14pt; color: #333; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0; }
+td, th { border: 1px solid #999; padding: 6px 10px; font-size: 10pt; }
+th { background-color: #1a3c5e; color: white; }
+code, pre { font-family: 'Consolas', monospace; background-color: #f4f4f4; font-size: 9.5pt; }
+pre { padding: 10px; border: 1px solid #ddd; overflow-x: auto; }
+.pagebreak { page-break-before: always; }
+.diagram-box { border: 2px solid #2a5c8e; padding: 8px; margin: 5px; display: inline-block; text-align: center; min-width: 120px; font-size: 9pt; }
+.abstract { background-color: #e8f0fe; font-style: italic; }
+.interface { background-color: #fef8e0; }
+.concrete { background-color: #e8fee8; }
+.enum { background-color: #fee8f0; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+<h1>Space Station Odyssey</h1>
+<h2>53 Studio</h2>
+<br>
+<p>Alex Rodr&iacute;guez Ill&aacute;n</p>
+<p>Enrique Robles Puentes</p>
+<p>Juan F&eacute;lix Noblejas Torroba</p>
+<br><br>
+<p><b>Metodi Avanzati di Programmazione</b><br>(track M-Z)<br>A.A. 2025/2026</p>
+</div>
+
+<h2 style="page-break-before:avoid;">Table of Contents</h2>
+<ol style="font-size:12pt; line-height:2;">
+<li>Adventure Description</li>
+<li>Design
+  <ul><li>2.1 Package Organization</li><li>2.2 Class Identification and Responsibilities</li></ul>
+</li>
+<li>Class Diagram</li>
+<li>Algebraic Specification (Non-Axiomatic)</li>
+<li>Implementation Details
+  <ul><li>5.1 Generic Programming</li><li>5.2 Files (I/O)</li><li>5.3 Database (JDBC)</li><li>5.4 Lambda Expressions, Streams &amp; Pipelines</li><li>5.5 Swing</li><li>5.6 Threads &amp; Concurrent Programming</li><li>5.7 Sockets</li></ul>
+</li>
+<li>Game Walkthrough &amp; Optimal Solution
+  <ul><li>6.1 Station Map</li><li>6.2 Optimal Room Order</li><li>6.3 Puzzle Solutions</li><li>6.4 Optional Actions</li><li>6.5 Available Commands</li></ul>
+</li>
+</ol>
+
+<h1>1. Adventure Description</h1>
+<p><b>Space Station Odyssey</b> is a text-based adventure game with a graphical interface set aboard a failing space station. The player awakens in the Cryogenics bay with the life-support system failing. Oxygen is depleting in real time (1 unit per second from an initial 100). The goal is to navigate through 7 interconnected rooms, solve puzzles, collect key items, and ultimately reach the Escape Module to repair its console and flee the station before oxygen runs out.</p>
+
+<p>The game features:</p>
+<ul>
+<li>A real-time oxygen countdown managed by a concurrent thread, creating constant tension.</li>
+<li>Three puzzles that must be solved in sequence to progress.</li>
+<li>A graphical map that reveals rooms as the player explores.</li>
+<li>A network terminal (socket-based) and a hackable database for story immersion.</li>
+<li>Save/load functionality via Java serialization to files.</li>
+<li>A full Swing GUI with sci-fi aesthetics, directional buttons, action shortcuts, and an interactive command line.</li>
+</ul>
+
+<h1>2. Design</h1>
+
+<h2>2.1 Package Organization</h2>
+<p>The project is organized into 7 packages under <code>di.uniba.map.b.adventure</code>:</p>
+<table>
+<tr><th>Package</th><th>Responsibility</th><th>Classes</th></tr>
+<tr><td><code>core</code></td><td>Game logic and state management</td><td>GameEngine, GameState</td></tr>
+<tr><td><code>entities</code></td><td>Domain model (items, rooms, containers)</td><td>ObjetoJuego, Item, Consumible, Herramienta, Usable, Contenitore, Stanza, Direction</td></tr>
+<tr><td><code>gui</code></td><td>Swing graphical user interface</td><td>MainWindow, MapPanel, GameOverWindow</td></tr>
+<tr><td><code>parser</code></td><td>Command parsing with regex</td><td>Parser, Parser.ResultadoParser, Parser.ComandoType</td></tr>
+<tr><td><code>db</code></td><td>Database access via JDBC</td><td>DBManager</td></tr>
+<tr><td><code>io</code></td><td>File-based save/load</td><td>SaveLoadManager</td></tr>
+<tr><td><code>net</code></td><td>Socket-based network communication</td><td>NetworkTerminal</td></tr>
+<tr><td><code>threads</code></td><td>Concurrent oxygen timer</td><td>OxygenTimer</td></tr>
+</table>
+
+<h2>2.2 Class Identification and Responsibilities</h2>
+<p>Classes were identified following a domain-driven approach: each real-world concept in the game (rooms, objects, inventory, timer, parser) maps to a class. The key OOP principles applied are:</p>
+<ul>
+<li><b>Inheritance:</b> <code>ObjetoJuego</code> (abstract) &rarr; <code>Item</code>, <code>Consumible</code>, <code>Herramienta</code></li>
+<li><b>Interfaces:</b> <code>Usable</code> defines the <code>usar()</code> contract; <code>OxygenListener</code> and <code>EngineListener</code> define callback contracts.</li>
+<li><b>Composition:</b> <code>Stanza</code> contains a <code>Contenitore&lt;ObjetoJuego&gt;</code>; <code>GameState</code> aggregates rooms, inventory, and flags.</li>
+<li><b>Generics:</b> <code>Contenitore&lt;T extends ObjetoJuego&gt;</code> provides type-safe collections.</li>
+<li><b>Enums:</b> <code>Direction</code> (NORTH, SOUTH, EAST, WEST) and <code>ComandoType</code> for type-safe constants.</li>
+<li><b>Polymorphism:</b> Each subclass of <code>ObjetoJuego</code> overrides <code>usar()</code> with different behavior.</li>
+</ul>
+
+<h1 class="pagebreak">3. Class Diagram</h1>
+<p>Below is a representation of the main class hierarchy and relationships:</p>
+
+<pre>
+  +------------------+          +-------------------+
+  | &laquo;interface&raquo;     |          | &laquo;enum&raquo;            |
+  |     Usable       |          |    Direction       |
+  |------------------|          |-------------------|
+  | + usar(): void   |          | NORTH, SOUTH,     |
+  +--------+---------+          | EAST, WEST        |
+           |                    | + fromString(s)   |
+           | implements         +-------------------+
+           |
+  +--------+---------+    uses    +----------------------------+
+  | &laquo;abstract&raquo;       |&lt;---------| Contenitore&lt;T extends     |
+  |   ObjetoJuego    |           |            ObjetoJuego&gt;    |
+  |------------------|           |----------------------------|
+  | - id: String     |           | - elementos: Set&lt;T&gt;        |
+  | - nombre: String |           | + add(T): void             |
+  | - descripcion    |           | + remove(T): void          |
+  | + getId()        |           | + getElementos(): Set&lt;T&gt;   |
+  | + getNombre()    |           | + filtrarPorNombre(String)  |
+  | + usar(): void   |           +----------------------------+
+  +---+-----+-----+--+
+      |     |     |
+      |     |     +------------------+
+      |     |                        |
++-----+---+ +--------+   +----------+--+
+|  Item   | |Consumible|  | Herramienta |
+|---------| |----------|  |-------------|
+|usar()   | |- consumido| | usar()      |
++---------+ |+ usar()  |  +-------------+
+            +----------+
+
+  +------------------+     has-a    +----------------------------+
+  |    Stanza        |------------&gt;| Contenitore&lt;ObjetoJuego&gt;  |
+  |------------------|              +----------------------------+
+  | - id, nombre     |
+  | - salidas: Map   |     +-------------------+
+  |   &lt;Direction,    |     |    GameState       |
+  |    Stanza&gt;       |     |-------------------|
+  +------------------+     | + habitacionActual |
+                           | + inventario       |
+  +------------------+     | + oxigenoRestante  |
+  |   GameEngine     |----&gt;| + mapa: List      |
+  |------------------|     +-------------------+
+  | - parser: Parser |
+  | - timer          |     +-------------------+
+  | + procesarCmd()  |----&gt;|   OxygenTimer     |
+  | + iniciarJuego() |     | extends Thread    |
+  +------------------+     | - oxigenoRestante |
+         |                 | - volatile activo |
+         | implements      | - volatile pausado|
+  +------+--------+        | + pausar/reanudar |
+  | EngineListener |        +-------------------+
+  +---------------+
+</pre>
+
+<p><b>OOP principles demonstrated:</b></p>
+<ul>
+<li><b>Abstract class + Inheritance:</b> <code>ObjetoJuego</code> is abstract with three concrete subclasses (<code>Item</code>, <code>Consumible</code>, <code>Herramienta</code>), each providing its own <code>usar()</code> implementation.</li>
+<li><b>Interface:</b> <code>Usable</code> defines the behavioral contract. <code>EngineListener</code> and <code>OxygenListener</code> enable callback-based communication (Observer pattern).</li>
+<li><b>Composition:</b> <code>Stanza</code> owns a <code>Contenitore</code>; <code>GameEngine</code> owns <code>Parser</code>, <code>OxygenTimer</code>, and <code>GameState</code>.</li>
+<li><b>Generics with bounded type parameter:</b> <code>Contenitore&lt;T extends ObjetoJuego&gt;</code>.</li>
+<li><b>Encapsulation:</b> All fields are private with public accessors.</li>
+</ul>
+
+<h1 class="pagebreak">4. Algebraic Specification (Non-Axiomatic)</h1>
+<p>We provide a non-axiomatic algebraic specification for the <code>Contenitore&lt;T&gt;</code> data structure, which serves as both the player inventory and room item container.</p>
+
+<h2>4.1 Type Definition</h2>
+<pre>
+TYPE: Contenitore&lt;T extends ObjetoJuego&gt;
+USES: ObjetoJuego, Set&lt;T&gt;, List&lt;T&gt;, String, boolean, int
+</pre>
+
+<h2>4.2 Operation Signatures</h2>
+<table>
+<tr><th>Operation</th><th>Signature</th><th>Description</th></tr>
+<tr><td>create</td><td>&rarr; Contenitore&lt;T&gt;</td><td>Creates an empty container</td></tr>
+<tr><td>add</td><td>Contenitore&lt;T&gt; &times; T &rarr; void</td><td>Inserts an element</td></tr>
+<tr><td>remove</td><td>Contenitore&lt;T&gt; &times; T &rarr; void</td><td>Removes an element</td></tr>
+<tr><td>getElementos</td><td>Contenitore&lt;T&gt; &rarr; Set&lt;T&gt;</td><td>Returns all elements</td></tr>
+<tr><td>filtrarPorNombre</td><td>Contenitore&lt;T&gt; &times; String &rarr; List&lt;T&gt;</td><td>Filters by name substring</td></tr>
+</table>
+
+<h2>4.3 Preconditions and Postconditions</h2>
+
+<h3>create()</h3>
+<table>
+<tr><th>Precondition</th><td>None</td></tr>
+<tr><th>Postcondition</th><td>Returns a new Contenitore c where |getElementos(c)| = 0</td></tr>
+</table>
+
+<h3>add(c, elem)</h3>
+<table>
+<tr><th>Precondition</th><td>elem &ne; null</td></tr>
+<tr><th>Postcondition</th><td>elem &isin; getElementos(c'). If elem was already present (by equals), the set size is unchanged (Set semantics). Otherwise |getElementos(c')| = |getElementos(c)| + 1.</td></tr>
+</table>
+
+<h3>remove(c, elem)</h3>
+<table>
+<tr><th>Precondition</th><td>elem &ne; null</td></tr>
+<tr><th>Postcondition</th><td>elem &notin; getElementos(c'). If elem was present, |getElementos(c')| = |getElementos(c)| - 1. Otherwise the container is unchanged.</td></tr>
+</table>
+
+<h3>getElementos(c)</h3>
+<table>
+<tr><th>Precondition</th><td>None</td></tr>
+<tr><th>Postcondition</th><td>Returns the Set&lt;T&gt; containing all elements currently stored. Iteration order is insertion order (LinkedHashSet).</td></tr>
+</table>
+
+<h3>filtrarPorNombre(c, filtro)</h3>
+<table>
+<tr><th>Precondition</th><td>filtro &ne; null</td></tr>
+<tr><th>Postcondition</th><td>Returns a List&lt;T&gt; of all elements e in c such that e.getNombre().toLowerCase().contains(filtro.toLowerCase()). The result list preserves the iteration order of the underlying Set.</td></tr>
+</table>
+
+<h2>4.4 Observations</h2>
+<ul>
+<li>The underlying data structure is a <code>LinkedHashSet</code>, which guarantees uniqueness based on <code>equals()/hashCode()</code> of <code>ObjetoJuego</code> (compared by <code>id</code> field).</li>
+<li>The <code>filtrarPorNombre</code> operation uses Java Streams internally (<code>.stream().filter().collect()</code>), demonstrating functional-style data processing.</li>
+<li>The container is <code>Serializable</code>, enabling game state persistence via <code>SaveLoadManager</code>.</li>
+</ul>
+
+<h1 class="pagebreak">5. Implementation Details</h1>
+<p>This section details how each course topic was applied in the project.</p>
+
+<h2>5.1 Generic Programming</h2>
+<p>The class <code>Contenitore&lt;T extends ObjetoJuego&gt;</code> is a generic container with a bounded type parameter. It is used as:</p>
+<ul>
+<li><code>Contenitore&lt;ObjetoJuego&gt;</code> for the player's inventory in <code>GameState</code></li>
+<li><code>Contenitore&lt;ObjetoJuego&gt;</code> for items in each <code>Stanza</code> (room)</li>
+</ul>
+<p>The bounded type parameter <code>T extends ObjetoJuego</code> ensures type safety: only game objects (or their subclasses) can be stored. This allows polymorphic storage of <code>Item</code>, <code>Consumible</code>, and <code>Herramienta</code> objects in the same container while maintaining compile-time type checking.</p>
+<pre>
+public class Contenitore&lt;T extends ObjetoJuego&gt; implements Serializable {
+    private Set&lt;T&gt; elementos;
+    public Contenitore() { this.elementos = new LinkedHashSet&lt;&gt;(); }
+    public void add(T elemento) { elementos.add(elemento); }
+    public void remove(T elemento) { elementos.remove(elemento); }
+    public Set&lt;T&gt; getElementos() { return elementos; }
+    public List&lt;T&gt; filtrarPorNombre(String filtro) {
+        return elementos.stream()
+            .filter(e -&gt; e.getNombre().toLowerCase().contains(filtro.toLowerCase()))
+            .collect(Collectors.toList());
+    }
+}
+</pre>
+
+<h2>5.2 Files (I/O)</h2>
+<p>The <code>SaveLoadManager</code> class handles game persistence using Java's object serialization mechanism. The <code>GameState</code> class (and all its components) implement <code>Serializable</code>.</p>
+<ul>
+<li><b>Save:</b> Uses <code>ObjectOutputStream</code> wrapping a <code>FileOutputStream</code> to serialize the entire <code>GameState</code> object graph to <code>savegame.dat</code>.</li>
+<li><b>Load:</b> Uses <code>ObjectInputStream</code> wrapping a <code>FileInputStream</code> to deserialize the saved state.</li>
+<li>Both operations use <b>try-with-resources</b> for automatic resource management.</li>
+</ul>
+<pre>
+public static boolean guardar(GameState state) {
+    try (ObjectOutputStream out = new ObjectOutputStream(
+            new FileOutputStream(SAVE_FILE))) {
+        out.writeObject(state);
+        return true;
+    } catch (IOException e) { return false; }
+}
+public static GameState cargar() {
+    try (ObjectInputStream in = new ObjectInputStream(
+            new FileInputStream(SAVE_FILE))) {
+        return (GameState) in.readObject();
+    } catch (IOException | ClassNotFoundException e) { return null; }
+}
+</pre>
+
+<h2>5.3 Database (JDBC)</h2>
+<p><code>DBManager</code> manages an embedded <b>H2</b> database via JDBC. It creates and queries two tables:</p>
+<table>
+<tr><th>Table</th><th>Purpose</th><th>Columns</th></tr>
+<tr><td><code>logs_terminal</code></td><td>In-game narrative logs accessed via the "hack" command in the Control Room</td><td>id (PK, AUTO_INCREMENT), log_text (VARCHAR)</td></tr>
+<tr><td><code>puntuacion</code></td><td>Stores player scores (remaining oxygen) upon winning</td><td>id (PK, AUTO_INCREMENT), nombre (VARCHAR), score (INT)</td></tr>
+</table>
+<p>Key JDBC features used:</p>
+<ul>
+<li><code>DriverManager.getConnection()</code> with H2 connection URL</li>
+<li><code>Statement</code> for DDL (CREATE TABLE) and simple queries</li>
+<li><code>PreparedStatement</code> with parameterized queries for score insertion (SQL injection prevention)</li>
+<li><code>ResultSet</code> for reading query results</li>
+<li><b>try-with-resources</b> for automatic <code>Connection</code>/<code>Statement</code> closing</li>
+</ul>
+<pre>
+public static void guardarPuntuacion(String nombre, int score) {
+    String sql = "INSERT INTO puntuacion (nombre, score) VALUES (?, ?)";
+    try (Connection conn = getConnection();
+         PreparedStatement pstmt = conn.prepareStatement(sql)) {
+        pstmt.setString(1, nombre);
+        pstmt.setInt(2, score);
+        pstmt.executeUpdate();
+    } catch (SQLException e) { ... }
+}
+</pre>
+
+<h2>5.4 Lambda Expressions, Streams &amp; Pipelines</h2>
+<p>Lambda expressions and streams are used extensively throughout the project:</p>
+
+<p><b>Stream pipeline in <code>Contenitore.filtrarPorNombre()</code>:</b></p>
+<pre>
+return elementos.stream()
+    .filter(e -&gt; e.getNombre().toLowerCase().contains(filtro.toLowerCase()))
+    .collect(Collectors.toList());
+</pre>
+<p>This pipeline: (1) creates a stream from the Set, (2) filters elements using a lambda predicate, and (3) collects results into a List using a terminal collector.</p>
+
+<p><b>Lambda expressions for Swing event handling:</b></p>
+<pre>
+// ActionListener lambda
+txtComando.addActionListener((ActionEvent e) -&gt; {
+    String input = txtComando.getText();
+    engine.procesarComando(input);
+});
+
+// Runnable lambda for thread-safe GUI updates
+SwingUtilities.invokeLater(() -&gt; listener.onOxygenUpdate(oxigenoRestante));
+
+// Button creation with lambdas
+btn.addActionListener(e -&gt; { engine.procesarComando("go " + dir); });
+</pre>
+
+<h2>5.5 Swing</h2>
+<p>The GUI consists of three Swing classes:</p>
+
+<p><b>MainWindow</b> (<code>extends JFrame, implements EngineListener</code>): The main game interface featuring:</p>
+<ul>
+<li><code>BorderLayout</code> with panels for header (NORTH), narrative (CENTER), sidebar (EAST), and controls (SOUTH)</li>
+<li><code>JTextArea</code> for narrative text with terminal-style green-on-black theme</li>
+<li><code>JProgressBar</code> for oxygen level with dynamic color changes (green &rarr; orange &rarr; red)</li>
+<li><code>JTextField</code> for command input with custom styling</li>
+<li><code>JList</code> + <code>DefaultListModel</code> for inventory display</li>
+<li>Direction buttons (<code>GridLayout</code> 3&times;3) and 8 action buttons</li>
+<li>Pause overlay using <code>JLayeredPane</code> with semi-transparent background</li>
+<li>Lambda-based event listeners and <code>JOptionPane</code> dialogs for parameterized commands</li>
+</ul>
+
+<p><b>MapPanel</b> (<code>extends JPanel</code>): Custom-painted station map using <code>Graphics2D</code>:</p>
+<ul>
+<li>Overrides <code>paintComponent()</code> for custom rendering with anti-aliasing</li>
+<li>Draws rounded rectangles for rooms with color-coding (current, visited, unvisited, escape)</li>
+<li>Draws connection lines between rooms (solid for explored, dashed for unexplored)</li>
+<li>Uses <code>FontMetrics</code> for centered text rendering</li>
+<li>Rooms are revealed progressively as the player explores (fog-of-war mechanic)</li>
+</ul>
+
+<p><b>GameOverWindow</b> (<code>extends JFrame</code>): End-game screen with:</p>
+<ul>
+<li>Custom <code>paintComponent()</code> with <code>GradientPaint</code> backgrounds (green for victory, red for defeat)</li>
+<li>Dynamic title and narrative text based on outcome</li>
+<li>"New Game" and "Quit" buttons with styled borders</li>
+</ul>
+
+<h2>5.6 Threads &amp; Concurrent Programming</h2>
+<p><code>OxygenTimer</code> extends <code>Thread</code> and manages the real-time oxygen countdown:</p>
+<ul>
+<li>Decrements oxygen by 1 every second using <code>Thread.sleep(1000)</code></li>
+<li>Uses <code>volatile</code> flags (<code>activo</code>, <code>pausado</code>) for thread-safe state visibility</li>
+<li>Implements <b>pause/resume</b> using <code>synchronized</code> blocks with <code>wait()</code>/<code>notifyAll()</code> on a dedicated lock object</li>
+<li>Uses <code>SwingUtilities.invokeLater()</code> to safely update the GUI from the timer thread (respecting the Swing single-thread rule)</li>
+<li>Triggers game over when oxygen reaches zero</li>
+</ul>
+<pre>
+public void run() {
+    while (activo &amp;&amp; oxigenoRestante &gt; 0) {
+        synchronized (lockPausa) {
+            while (pausado &amp;&amp; activo) { lockPausa.wait(); }
+        }
+        Thread.sleep(1000);
+        oxigenoRestante--;
+        SwingUtilities.invokeLater(() -&gt; listener.onOxygenUpdate(oxigenoRestante));
+    }
+    if (oxigenoRestante &lt;= 0 &amp;&amp; activo)
+        SwingUtilities.invokeLater(() -&gt; listener.onGameOver());
+}
+</pre>
+<p>Additionally, the <code>NetworkTerminal</code> server runs in a <b>daemon thread</b>, ensuring it does not prevent JVM shutdown.</p>
+
+<h2>5.7 Sockets</h2>
+<p><code>NetworkTerminal</code> implements a local client-server architecture using Java Sockets:</p>
+<ul>
+<li><b>Server side:</b> A <code>ServerSocket</code> listens on port 5555 in a daemon thread. When a client connects, it sends a narrative message via <code>PrintWriter</code>.</li>
+<li><b>Client side:</b> The <code>getMessageFromServer()</code> method creates a <code>Socket</code> connection to <code>localhost:5555</code> and reads the response via <code>BufferedReader</code>.</li>
+<li>This simulates the in-game "hack" command in the Communications room, where the player intercepts a distress signal from the network.</li>
+</ul>
+<pre>
+// Server (daemon thread)
+serverThread = new Thread(() -&gt; {
+    try (ServerSocket ss = new ServerSocket(PORT)) {
+        while (!Thread.currentThread().isInterrupted()) {
+            try (Socket client = ss.accept();
+                 PrintWriter out = new PrintWriter(client.getOutputStream(), true)) {
+                out.println("NETWORK MESSAGE: 'Help! We are trapped...'");
+            }
+        }
+    } catch (IOException e) { }
+});
+serverThread.setDaemon(true);
+serverThread.start();
+
+// Client
+public static String getMessageFromServer() {
+    try (Socket socket = new Socket("localhost", PORT);
+         BufferedReader in = new BufferedReader(
+             new InputStreamReader(socket.getInputStream()))) {
+        return in.readLine();
+    } catch (IOException e) { return "Network error."; }
+}
+</pre>
+
+<h1 class="pagebreak">6. Game Walkthrough &amp; Optimal Solution</h1>
+
+<h2>6.1 Station Map</h2>
+<pre>
+                    +-----------+
+                    |Cryogenics |  (START)
+                    +-----+-----+
+                          |
+  +-----------+     +-----+-----+     +-----------+     +-----------+
+  |Engineering|-----| Central   |-----|  Control  |-----| Laboratory|
+  +-----------+     |  Hallway  |     |   Room    |     +-----------+
+        |           +-----+-----+     +-----------+
+  +-----+-----+          |
+  |  Escape   |    +-----+-----+
+  |  Module   |    |   Comms   |
+  +-----------+    +-----------+
+     (GOAL)
+</pre>
+
+<h2>6.2 Optimal Room Order</h2>
+<p>The minimum-step optimal path to complete the game:</p>
+<table>
+<tr><th>Step</th><th>Action</th><th>Room</th><th>Purpose</th></tr>
+<tr><td>1</td><td>Start</td><td>Cryogenics</td><td>Wake up. Optionally take the Keycard.</td></tr>
+<tr><td>2</td><td>go south</td><td>Central Hallway</td><td>Hub room. Note: Engineering door is locked.</td></tr>
+<tr><td>3</td><td>go east</td><td>Control Room</td><td>Take the Oxygen Tank (safety net).</td></tr>
+<tr><td>4</td><td>go east</td><td>Laboratory</td><td>Solve the panel puzzle to unlock the Hammer.</td></tr>
+<tr><td>5</td><td>solve 56</td><td>Laboratory</td><td>Puzzle: 8 planets &times; 7 months with 31 days = 56.</td></tr>
+<tr><td>6</td><td>take hammer</td><td>Laboratory</td><td>Pick up the Hammer.</td></tr>
+<tr><td>7</td><td>go west</td><td>Control Room</td><td>Pass through.</td></tr>
+<tr><td>8</td><td>go west</td><td>Central Hallway</td><td>Return to hub.</td></tr>
+<tr><td>9</td><td>solve 2357</td><td>Central Hallway</td><td>Puzzle: "prime suspects" = primes 2, 3, 5, 7.</td></tr>
+<tr><td>10</td><td>go west</td><td>Engineering</td><td>Enter Engineering.</td></tr>
+<tr><td>11</td><td>break case / use hammer</td><td>Engineering</td><td>Smash the glass display case with the Hammer.</td></tr>
+<tr><td>12</td><td>take wrench</td><td>Engineering</td><td>Pick up the Wrench.</td></tr>
+<tr><td>13</td><td>go south</td><td>Escape Module</td><td>Reach the escape pod.</td></tr>
+<tr><td>14</td><td>use wrench</td><td>Escape Module</td><td><b>WIN!</b> Repair the console and escape.</td></tr>
+</table>
+
+<p><b>Estimated time:</b> ~14 seconds minimum (one action per second). With the initial 100 seconds of oxygen, the player has ample time if they know the solution. Using the Oxygen Tank adds 60 extra seconds if needed.</p>
+
+<h2>6.3 Puzzle Solutions</h2>
+
+<h3>Puzzle 1: Engineering Door (Central Hallway)</h3>
+<table>
+<tr><th>Clue</th><td>"Look for the prime suspects"</td></tr>
+<tr><th>Solution</th><td><code>solve 2357</code> &mdash; The single-digit prime numbers: 2, 3, 5, 7</td></tr>
+<tr><th>Effect</th><td>Unlocks the western door to Engineering</td></tr>
+</table>
+
+<h3>Puzzle 2: Laboratory Panel</h3>
+<table>
+<tr><th>Clue</th><td>"The number of planets in the solar system, multiplied by the number of months with 31 days."</td></tr>
+<tr><th>Solution</th><td><code>solve 56</code> &mdash; 8 planets &times; 7 months (Jan, Mar, May, Jul, Aug, Oct, Dec) = 56</td></tr>
+<tr><th>Effect</th><td>Opens the electronic panel, making the Hammer available to take</td></tr>
+</table>
+
+<h3>Puzzle 3: Glass Display Case (Engineering)</h3>
+<table>
+<tr><th>Requirement</th><td>Have the Hammer in inventory</td></tr>
+<tr><th>Solution</th><td><code>break case</code> or <code>use hammer</code> while in Engineering</td></tr>
+<tr><th>Effect</th><td>Breaks the glass case, making the Wrench available to take</td></tr>
+</table>
+
+<h2>6.4 Optional Actions</h2>
+<ul>
+<li><b>use tanque</b> (in any room): Consumes the Oxygen Tank, adding 60 seconds of air.</li>
+<li><b>hack</b> (in Communications): Connects to the network server via sockets and receives a distress message from trapped crew members.</li>
+<li><b>hack</b> (in Control Room): Queries the H2 database for a random captain's log entry.</li>
+<li><b>save / load</b>: Persist and restore game state at any point.</li>
+</ul>
+
+<h2>6.5 Available Commands</h2>
+<table>
+<tr><th>Command</th><th>Aliases</th><th>Description</th></tr>
+<tr><td>go [direction]</td><td>move, walk, north, south, east, west</td><td>Move to an adjacent room</td></tr>
+<tr><td>look</td><td>examine, observe</td><td>Describe current room and list visible objects</td></tr>
+<tr><td>take [object]</td><td>pick, grab</td><td>Pick up an object from the room</td></tr>
+<tr><td>use [object]</td><td>&mdash;</td><td>Use an object from inventory</td></tr>
+<tr><td>break [object]</td><td>smash, hit</td><td>Attempt to break something in the room</td></tr>
+<tr><td>solve [answer]</td><td>answer</td><td>Submit a puzzle answer</td></tr>
+<tr><td>inventory</td><td>inv, i</td><td>Show inventory contents</td></tr>
+<tr><td>hack</td><td>connect</td><td>Interact with a terminal (room-specific)</td></tr>
+<tr><td>save</td><td>&mdash;</td><td>Save current game state to file</td></tr>
+<tr><td>load</td><td>&mdash;</td><td>Load saved game state from file</td></tr>
+<tr><td>help</td><td>&mdash;</td><td>Show available commands</td></tr>
+</table>
+
+</body>
+</html>
